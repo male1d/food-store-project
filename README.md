@@ -6,6 +6,6 @@
 - **Backend:** Nest.js, TypeScript, PostgreSQL, TypeORM
 - **Инфраструктура:** Docker, GitHub Actions
 
-## 🛠 Установка и запуск
+## Установка и запуск
 
 - Scripts/build.bat
