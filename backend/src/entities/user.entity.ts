@@ -1,6 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Order } from './order.entity';
-import { UserAddress } from './user-address.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -14,7 +12,7 @@ export class User {
   password_hash: string;
 
   @Column({ default: 'user' })
-  role: string; // 'admin', 'moderator', 'user'
+  role: string;
 
   @Column({ nullable: true })
   first_name: string;
@@ -30,10 +28,4 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date;
-
-  @OneToMany(() => Order, order => order.user)
-  orders: Order[];
-
-  @OneToMany(() => UserAddress, address => address.user)
-  addresses: UserAddress[];
 }
