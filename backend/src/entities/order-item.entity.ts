@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Order } from './order.entity';
+import { Product } from './product.entity';
 
 @Entity('order_items')
 export class OrderItem {
@@ -11,9 +13,17 @@ export class OrderItem {
   @Column()
   product_id: number;
 
-  @Column('int')
+  @Column()
   quantity: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  price_at_time: number; // Цена на момент заказа
+  price_at_time: number;
+
+  @ManyToOne(() => Order, (order) => order.order_items)
+  @JoinColumn({ name: 'order_id' })
+  order: Order;
+
+  @ManyToOne(() => Product)
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 }

@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Order } from './order.entity'; // ← ВАЖНЫЙ ИМПОРТ
+import { UserAddress } from './user-address.entity';
 
 @Entity('users')
 export class User {
@@ -11,16 +13,19 @@ export class User {
   @Column()
   password_hash: string;
 
-  @Column({ default: 'user' })
+  @Column()
   role: string;
 
-  @Column({ nullable: true })
+  @Column({ default: true })
+  is_active: boolean;
+
+  @Column()
   first_name: string;
 
-  @Column({ nullable: true })
+  @Column()
   last_name: string;
 
-  @Column({ nullable: true })
+  @Column()
   phone: string;
 
   @CreateDateColumn()
@@ -28,4 +33,10 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => UserAddress, (userAddress) => userAddress.user)
+  addresses: UserAddress[];
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 }
