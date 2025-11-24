@@ -5,15 +5,20 @@ import { Order } from '../entities/order.entity';
 import { OrderItem } from '../entities/order-item.entity';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { Between, Like } from 'typeorm';
+import { Product } from '../entities/product.entity';
+
 
 @Injectable()
 export class OrdersService {
   constructor(
-    @InjectRepository(Order)
-    private ordersRepository: Repository<Order>,
-    @InjectRepository(OrderItem)
-    private orderItemsRepository: Repository<OrderItem>,
-  ) {}
+  @InjectRepository(Order)
+  private ordersRepository: Repository<Order>,
+  @InjectRepository(OrderItem) 
+  private orderItemsRepository: Repository<OrderItem>,
+  @InjectRepository(Product) // ← ЭТОТ ДОЛЖЕН БЫТЬ
+  private productsRepository: Repository<Product>,
+) {}
 
   // ПОЛУЧИТЬ ВСЕ ЗАКАЗЫ ПОЛЬЗОВАТЕЛЯ
   async getUserOrders(userId: number): Promise<Order[]> {
@@ -80,37 +85,92 @@ export class OrdersService {
     return this.ordersRepository.save(order);
   }
 
-  // СОЗДАТЬ НОВЫЙ ЗАКАЗ
-  async createOrder(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
-    // Рассчитываем общую сумму
-    const totalAmount = createOrderDto.items.reduce((total, item) => {
-      return total + (item.price_at_time * item.quantity);
-    }, 0);
+  // ФИЛЬТРАЦИЯ ЗАКАЗОВ ДЛЯ АДМИНОВ
+async getFilteredOrders(filters: any): Promise<Order[]> {
+  const where: any = {};
 
-    // Создаем заказ
-    const order = this.ordersRepository.create({
-      user_id: userId,
-      delivery_address: createOrderDto.delivery_address,
-      phone: createOrderDto.phone,
-      email: createOrderDto.email,
-      total_amount: totalAmount,
-      status: 'pending'
+  if (filters.status) {
+    where.status = filters.status;
+  }
+
+  if (filters.user_id) {
+    where.user_id = filters.user_id;
+  }
+
+  if (filters.start_date && filters.end_date) {
+    where.created_at = Between(
+      new Date(filters.start_date),
+      new Date(filters.end_date)
+    );
+  }
+
+  if (filters.search) {
+    where.email = Like(`%${filters.search}%`);
+  }
+
+  return this.ordersRepository.find({
+    where,
+    relations: ['user', 'order_items', 'order_items.product'],
+    order: { created_at: 'DESC' }
+  });
+}
+
+// СОЗДАТЬ НОВЫЙ ЗАКАЗ С ПРОВЕРКОЙ ТОВАРОВ
+async createOrder(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
+  // ПРОВЕРЯЕМ НАЛИЧИЕ ТОВАРОВ И РАССЧИТЫВАЕМ СУММУ
+  let totalAmount = 0;
+  const orderItems = [];
+
+  for (const item of createOrderDto.items) {
+    const product = await this.productsRepository.findOne({
+      where: { id: item.product_id }
     });
 
-    const savedOrder = await this.ordersRepository.save(order);
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${item.product_id} not found`);
+    }
 
-    // Создаем элементы заказа
-    const orderItems = createOrderDto.items.map(item => 
-      this.orderItemsRepository.create({
-        order_id: savedOrder.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price_at_time: item.price_at_time
-      })
-    );
+    if (product.quantity < item.quantity) {
+      throw new NotFoundException(`Not enough quantity for product ${product.name}. Available: ${product.quantity}, requested: ${item.quantity}`);
+    }
 
-    savedOrder.order_items = await this.orderItemsRepository.save(orderItems);
+    // ОБНОВЛЯЕМ ОСТАТКИ ТОВАРА
+    product.quantity -= item.quantity;
+    await this.productsRepository.save(product);
 
-    return savedOrder;
+    totalAmount += product.price * item.quantity;
+
+    orderItems.push({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price_at_time: product.price // Используем актуальную цену из базы
+    });
   }
+
+  // СОЗДАЕМ ЗАКАЗ
+  const order = this.ordersRepository.create({
+    user_id: userId,
+    delivery_address: createOrderDto.delivery_address,
+    phone: createOrderDto.phone,
+    email: createOrderDto.email,
+    total_amount: totalAmount,
+    status: 'pending'
+  });
+
+  const savedOrder = await this.ordersRepository.save(order);
+
+  // СОЗДАЕМ ЭЛЕМЕНТЫ ЗАКАЗА
+  const savedOrderItems = orderItems.map(item => 
+    this.orderItemsRepository.create({
+      order_id: savedOrder.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price_at_time: item.price_at_time
+    })
+  );
+
+  savedOrder.order_items = await this.orderItemsRepository.save(savedOrderItems);
+
+  return savedOrder;
+}
 }

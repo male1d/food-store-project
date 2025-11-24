@@ -5,6 +5,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../auth/guards/auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Query } from '@nestjs/common';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -38,6 +39,14 @@ export class OrdersController {
   async getOrderById(@Param('id') id: string) {
     return this.ordersService.getOrderById(+id);
   }
+
+  // ФИЛЬТРАЦИЯ ЗАКАЗОВ (ДЛЯ АДМИНА/МОДЕРАТОРА)
+@Get('admin/filtered')
+@UseGuards(RolesGuard)
+@Roles('admin', 'moderator')
+async getFilteredOrders(@Query() filters: any) {
+  return this.ordersService.getFilteredOrders(filters);
+}
 
   // ОБНОВЛЕНИЕ СТАТУСА ЗАКАЗА
   @Put('orders/:id/status')
