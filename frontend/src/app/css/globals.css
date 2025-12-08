@@ -1,0 +1,141 @@
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+li {
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  color: currentColor;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:root {
+  --accent-color: #1565C0;
+  --bg-accent-color: #E7F2FF;
+}
+
+
+.main {
+  min-width: 375px;
+  max-width: 1440px;
+  margin: auto;
+  font-family: "Gilroy", sans-serif;
+}
+
+.header{
+  padding: 12px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 70px;
+}
+
+.logo {
+  font-family: "Gilroy", sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--accent-color);
+  line-height: 80%;
+}
+
+.link {
+  text-decoration: none;
+}
+
+.header-menu {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.header-menu-bitton {
+  width: 50px;
+  height: 46px;
+  border-radius: 20px;
+  border: none;
+  background-color: var(--accent-color);
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-input {
+  font-size: 16px;
+  width: 285px;
+  height: 46px;
+  border: none;
+  border-radius: 20px;
+  background-color: var(--bg-accent-color);
+  padding-left: 38px;
+  background-image: url(../svg/input.svg);
+  background-repeat: no-repeat;
+  background-size: 18px;
+  background-position: 15px 13px;
+}
+
+.header-location-bitton {
+  display: flex;
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: none;
+  background-color: var(--bg-accent-color);
+  align-items: center;
+  gap: 5px;
+  color: var(--accent-color);
+}
+
+.header-user {
+  display: flex;
+  gap: 15px;
+}
+
+.header-user-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: none;
+  background-color: transparent;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
