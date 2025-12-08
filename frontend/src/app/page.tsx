@@ -1,4 +1,5 @@
 import Header from './components/header';
+import "./css/globals.css";
 
 export default function Home() {
 
