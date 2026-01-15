@@ -1,8 +1,9 @@
+const withNextIntl = require('next-intl/plugin')(
+  './src/i18n.ts' // Путь к твоему конфигурационному файлу
+);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   env: {
     API_URL: process.env.API_URL || 'http://localhost:4000',
   },
@@ -17,6 +18,6 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = withNextIntl(nextConfig);

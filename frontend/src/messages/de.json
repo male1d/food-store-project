@@ -1,0 +1,12 @@
+{
+  "Header": {
+    "input": "Artikel finden"
+  },
+  "Cart": {
+    "title": "Корзина",
+    "empty": "Ваша корзина пуста",
+    "checkout": "Перейти к оплате",
+    "delivery": "Доставка",
+    "total": "К оплате"
+  }
+}

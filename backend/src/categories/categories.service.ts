@@ -21,7 +21,7 @@ export class CategoriesService {
   // ПОЛУЧИТЬ ВСЕ КАТЕГОРИИ
   async findAll(): Promise<Category[]> {
     return this.categoriesRepository.find({
-      relations: ['parent', 'children'],
+      
       order: { name: 'ASC' },
     });
   }

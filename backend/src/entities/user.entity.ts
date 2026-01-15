@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Order } from './order.entity'; // ← ВАЖНЫЙ ИМПОРТ
 import { UserAddress } from './user-address.entity';
+import { PaymentMethod } from './payment-method.entity'; 
 
 @Entity('users')
 export class User {
@@ -12,6 +13,10 @@ export class User {
 
   @Column()
   password_hash: string;
+
+  @OneToMany(() => PaymentMethod, (paymentMethod) => paymentMethod.user)
+  paymentMethods: PaymentMethod[];
+
 
   @Column()
   role: string;

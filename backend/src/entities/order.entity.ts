@@ -28,6 +28,16 @@ export class Order {
   @Column()
   delivery_address: string;
 
+  @Column({ nullable: true })
+  payment_method_id: number;
+
+  @Column({ default: 'pending' })
+  payment_status: string; 
+
+  @Column({ nullable: true })
+  transaction_id: string; 
+
+
   @Column()
   phone: string;
 

@@ -1,0 +1,13 @@
+{
+  "Header": {
+    "input": "Найти товары"
+  },
+  "Cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty",
+    "checkout": "Checkout",
+    "delivery": "Delivery",
+    "total": "Total"
+  }
+  
+}
