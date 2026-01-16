@@ -1,7 +1,10 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import $api from '@/api/axios';
-import { MapPin, Plus, Pencil, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
 
 interface AddressModalProps {
   isOpen: boolean;
@@ -20,7 +23,6 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Состояния для редактирования
   const [isAdding, setIsAdding] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [addressData, setAddressData] = useState({
@@ -31,25 +33,25 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
     comment: ''
   });
 
-  // Загрузка адресов
+  const t = useTranslations('AddressModal');
+
+
   useEffect(() => {
     if (isOpen) {
       setLoading(true);
       $api.get<Address[]>('/profile/addresses')
         .then(res => setAddresses(res.data))
-        .catch(err => console.error("Ошибка загрузки адресов", err))
+        .catch(err => console.error(t("errorUploading"), err))
         .finally(() => setLoading(false));
     }
   }, [isOpen]);
 
-  // Блокировка скролла при открытии модалки редактирования
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.body.style.overflow = isAdding ? 'hidden' : 'unset';
     }
   }, [isAdding]);
 
-  // ФУНКЦИЯ ПЕРЕХОДА В РЕЖИМ РЕДАКТИРОВАНИЯ
   const handleEditClick = (addr: Address) => {
     const fullString = addr.address || '';
     const parts = fullString.split(', ');
@@ -63,9 +65,9 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
 
     setAddressData({
       street: street,
-      entrance: findValue('подъезд '),
-      floor: findValue('этаж '),
-      apartment: findValue('кв. '),
+      entrance: findValue(t("entrance")),
+      floor: findValue(t("floor")),
+      apartment: findValue(t("flat")),
       comment: addr.comment || ''
     });
     
@@ -73,18 +75,17 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
     setIsAdding(true);
   };
 
-  // УНИВЕРСАЛЬНОЕ СОХРАНЕНИЕ (POST или PUT)
   const handleSaveAddress = async () => {
     if (!addressData.street.trim()) {
-      alert("Пожалуйста, укажите адрес");
+      alert(t("provideA"));
       return;
     }
 
     const fullAddress = [
       addressData.street,
-      addressData.entrance ? `подъезд ${addressData.entrance}` : null,
-      addressData.floor ? `этаж ${addressData.floor}` : null,
-      addressData.apartment ? `кв. ${addressData.apartment}` : null
+      addressData.entrance ? `${t("entrance")}${addressData.entrance}` : null,
+      addressData.floor ? `${t("floor")}${addressData.floor}` : null,
+      addressData.apartment ? `${t("flat")}${addressData.apartment}` : null
     ].filter(Boolean).join(', ');
 
     const method = editId ? 'PUT' : 'POST';
@@ -104,18 +105,16 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
       });
 
       if (res.status === 200 || res.status === 201) {
-        // Сбрасываем состояние
         setAddressData({ street: '', floor: '', entrance: '', apartment: '', comment: '' });
         setIsAdding(false);
         setEditId(null);
-        
-        // Перезагружаем список адресов
+
         const { data } = await $api.get<Address[]>('/profile/addresses');
         setAddresses(data);
       }
     } catch (err) { 
-      console.error("Ошибка сохранения адреса", err);
-      alert("Не удалось сохранить адрес");
+      console.error(t("errorSaving"), err);
+      alert(t("dntSave"));
     }
   };
 
@@ -127,7 +126,7 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
         <div className="relative bg-white w-full max-w-[500px] rounded-[16px] p-[25px] animate-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
           <div className="flex mb-[25px] justify-between items-center">
-            <h2 className="text-[24px] font-bold ">Мои адреса</h2>
+            <h2 className="text-[24px] font-bold ">{t("myAddresses")}</h2>
             <button onClick={onClose}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M16.2753 4.60893C16.5194 4.36486 16.5194 3.96913 16.2753 3.72505C16.0312 3.48097 15.6355 3.48097 15.3914 3.72505L10 9.11645L4.60863 3.72505C4.36455 3.48098 3.96882 3.48098 3.72475 3.72505C3.48067 3.96913 3.48067 4.36486 3.72475 4.60894L9.11615 10.0003L3.72477 15.3917C3.48069 15.6358 3.48069 16.0315 3.72477 16.2756C3.96885 16.5197 4.36457 16.5197 4.60865 16.2756L10 10.8842L15.3914 16.2756C15.6355 16.5197 16.0312 16.5197 16.2753 16.2756C16.5194 16.0315 16.5194 15.6358 16.2753 15.3917L10.8839 10.0003L16.2753 4.60893Z" fill="#212121"/>
@@ -138,11 +137,11 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12.75 4C12.75 3.58579 12.4142 3.25 12 3.25C11.5858 3.25 11.25 3.58579 11.25 4L11.25 11.25H4C3.58579 11.25 3.25 11.5858 3.25 12C3.25 12.4142 3.58579 12.75 4 12.75H11.25V20C11.25 20.4142 11.5858 20.75 12 20.75C12.4142 20.75 12.75 20.4142 12.75 20V12.75H20C20.4142 12.75 20.75 12.4142 20.75 12C20.75 11.5858 20.4142 11.25 20 11.25H12.75L12.75 4Z" fill="#1565C0"/>
             </svg>
-            <p className="text-[#1565C0] text-[16px]">Добавить новый</p>
+            <p className="text-[#1565C0] text-[16px]">{t("add")}</p>
           </button>
           <div className="space-y-3">
             {loading ? (
-              <p className="text-center py-4 text-gray-500">Загрузка адресов...</p>
+              <p className="text-center py-4 text-gray-500">{t("loading")}</p>
             ) : addresses.length > 0 ? (
               addresses.map((addr) => {
                 const parts = addr.address.split(', ');
@@ -189,7 +188,7 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
                 );
               })
             ) : (
-              <p className="text-gray-500 text-center py-4">У вас пока нет сохраненных адресов</p>
+              <p className="text-gray-500 text-center py-4">{t("donHave")}</p>
             )}
           </div>
         </div>
@@ -202,7 +201,7 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
           <div className="relative bg-white rounded-[16px] p-6 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold">
-                {editId ? 'Редактировать адрес' : 'Добавить адрес'}
+                {editId ? `${t("edit")}` : `${t("addA")}`}
               </h3>
               <button 
                 onClick={() => { 
@@ -218,9 +217,9 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
             
             <div className="space-y-4">
               <div>
-                <p className="mb-2 text-gray-700">Адрес *</p>
+                <p className="mb-2 text-gray-700">{t("address")}</p>
                 <input 
-                  placeholder="Улица, номер дома" 
+                  placeholder= {t("house")} 
                   className="w-full p-3 border border-gray-200 rounded-xl focus:border-[#1565C0] focus:ring-2 focus:ring-blue-100 outline-none"
                   value={addressData.street}
                   onChange={e => setAddressData({...addressData, street: e.target.value})}
@@ -230,7 +229,7 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
               
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <p className="mb-2 text-gray-700">Подъезд</p>
+                  <p className="mb-2 text-gray-700">{t("entran")}</p>
                   <input 
                     placeholder="№" 
                     className="w-full p-3 border border-gray-200 rounded-xl focus:border-[#1565C0] outline-none"
@@ -241,7 +240,7 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
                 </div>
                 
                 <div>
-                  <p className="mb-2 text-gray-700">Этаж</p>
+                  <p className="mb-2 text-gray-700">{t("floo")}</p>
                   <input 
                     placeholder="№" 
                     className="w-full p-3 border border-gray-200 rounded-xl focus:border-[#1565C0] outline-none"
@@ -252,7 +251,7 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
                 </div>
                 
                 <div>
-                  <p className="mb-2 text-gray-700">Квартира</p>
+                  <p className="mb-2 text-gray-700">{t("fl")}</p>
                   <input 
                     placeholder="№" 
                     className="w-full p-3 border border-gray-200 rounded-xl focus:border-[#1565C0] outline-none"
@@ -264,9 +263,9 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
               </div>
               
               <div>
-                <p className="mb-2 text-gray-700">Комментарий для курьера</p>
+                <p className="mb-2 text-gray-700">{t("comment")}</p>
                 <textarea 
-                  placeholder="Дополнительная информация для курьера" 
+                  placeholder= {t("inf")}
                   className="w-full p-3 border border-gray-200 rounded-xl focus:border-[#1565C0] focus:ring-2 focus:ring-blue-100 outline-none h-24 resize-none"
                   value={addressData.comment}
                   onChange={e => setAddressData({...addressData, comment: e.target.value})}
@@ -283,13 +282,13 @@ export const AddressModal = ({ isOpen, onClose, onSelect }: AddressModalProps) =
                 }} 
                 className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
-                Отмена
+                {t("cancel")}
               </button>
               <button 
                 onClick={handleSaveAddress}
                 className="flex-1 py-3 bg-[#1565C0] text-white rounded-xl font-medium hover:bg-[#0D47A1] transition-colors"
               >
-                {editId ? 'Сохранить' : 'Добавить'}
+                {editId ? `${t("save")}` : `${t("ad")}`}
               </button>
             </div>
           </div>

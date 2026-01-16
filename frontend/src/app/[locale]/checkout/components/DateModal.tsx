@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
+
 
 interface DateModalProps {
   isOpen: boolean;
@@ -10,16 +12,17 @@ interface DateModalProps {
 }
 
 const TIME_SLOTS = {
-  'Утром': ['10:00 - 11:00', '11:00 - 12:00'],
-  'Днем': ['12:00 - 13:00', '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00', '16:00 - 17:00', '17:00 - 18:00'],
-  'Вечером': ['18:00 - 19:00', '19:00 - 20:00', '20:00 - 21:00', '21:00 - 22:00'],
+  morning: ['10:00 - 11:00', '11:00 - 12:00'],
+  afternoon: ['12:00 - 13:00', '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00', '16:00 - 17:00', '17:00 - 18:00'],
+  evening: ['18:00 - 19:00', '19:00 - 20:00', '20:00 - 21:00', '21:00 - 22:00'],
 };
 
 export const DateModal = ({ isOpen, onClose, onSelect }: DateModalProps) => {
-  const [selectedDayIdx, setSelectedDayIdx] = useState(0); // 0 - завтра, 1 - послезавтра
+  const [selectedDayIdx, setSelectedDayIdx] = useState(0);
   const [selectedTime, setSelectedTime] = useState('');
 
-  // 1. Блокировка скролла при открытии
+  const t = useTranslations('DateModal');
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -31,7 +34,6 @@ export const DateModal = ({ isOpen, onClose, onSelect }: DateModalProps) => {
 
   if (!isOpen) return null;
 
-  // 2. Функция для получения красивой даты (например, "12 мая")
   const getDateLabel = (daysToAdd: number) => {
     const date = new Date();
     date.setDate(date.getDate() + daysToAdd);
@@ -42,13 +44,12 @@ export const DateModal = ({ isOpen, onClose, onSelect }: DateModalProps) => {
   };
 
   const days = [
-    { label: 'Завтра', dateValue: getDateLabel(1) },
-    { label: 'Послезавтра', dateValue: getDateLabel(2) },
+    { label: t("tomorrow"), dateValue: getDateLabel(1) },
+    { label: t("afterTomorrow"), dateValue: getDateLabel(2) },
   ];
 
   const handleConfirm = () => {
     if (selectedTime) {
-      // Передаем строку в формате "12 мая, 10:00 - 11:00"
       onSelect(`${days[selectedDayIdx].dateValue}, ${selectedTime}`);
     }
   };
@@ -83,9 +84,8 @@ export const DateModal = ({ isOpen, onClose, onSelect }: DateModalProps) => {
             </svg>
           </button>
         </div>
-        <h2 className="text-gray-900 font-bold text-[24px] my-[15px]">Выберите время доставки</h2>
+        <h2 className="text-gray-900 font-bold text-[24px] my-[15px]">{t("select")}</h2>
 
-        {/* Переключатель дней */}
         <div className="flex gap-[15px] mb-[20px] bg-[#E7F2FF] rounded-[12px]">
           {days.map((day, idx) => (
             <button
@@ -102,11 +102,10 @@ export const DateModal = ({ isOpen, onClose, onSelect }: DateModalProps) => {
           ))}
         </div>
 
-        {/* Списоки времени */}
         <div className="mb-[20px] flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6" >
           {Object.entries(TIME_SLOTS).map(([period, slots]) => (
             <div key={period}>
-              <h3 className="text-[16px] mb-[10px]">{period}</h3>
+              <h3 className="text-[16px] mb-[10px]">{t(period)}</h3>
               <div className="grid grid-cols-2 gap-y-[15px] gap-x-[32px]">
                 {slots.map((slot) => (
                   <button
@@ -131,14 +130,14 @@ export const DateModal = ({ isOpen, onClose, onSelect }: DateModalProps) => {
             onClick={onClose}
             className="flex-1 h-[40px] border border-[#E0E0E0] rounded-[12px] text-[#757575] text-[14px] hover:bg-[#E0E0E0] transition-colors"
           >
-            Отмена
+            {t("cancel")}
           </button>
           <button 
             onClick={handleConfirm}
             disabled={!selectedTime}
             className="flex-1 h-[40px] bg-[#1565C0] text-white rounded-[12px] text-[14px] hover:bg-[#0D47A1] transition-all disabled:opacity-50"
           >
-            Выбрать
+            {t("choose")}
           </button>
         </div>
       </div>

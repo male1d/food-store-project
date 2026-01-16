@@ -1,10 +1,13 @@
-// middleware.ts
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './navigation';
+import { NextRequest } from 'next/server';
 
-export default createMiddleware(routing);
+const intlMiddleware = createMiddleware(routing);
+
+export default function middleware(request: NextRequest) {
+  return intlMiddleware(request);
+}
 
 export const config = {
-  // Матчер должен четко определять, какие пути мы локализуем
-  matcher: ['/((?!_next|_vercel|.*\\..*).*)']
+  matcher: ['/', '/(ru|en|de)/:path*', '/((?!api|_next|_vercel|.*\\..*).*)']
 };

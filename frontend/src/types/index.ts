@@ -1,4 +1,3 @@
-// Интерфейс продукта, согласованный с Backend-разработчиком
 export interface Product {
   id: number;
   name: string;

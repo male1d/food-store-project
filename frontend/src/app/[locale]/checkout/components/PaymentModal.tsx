@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import $api from '@/api/axios';
 import { CreditCard, X, Plus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ICard {
   id: number;
@@ -20,6 +21,8 @@ export const PaymentModal = ({ isOpen, onClose, onSelect }: PaymentModalProps) =
   const [cards, setCards] = useState<ICard[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const t = useTranslations('PaymentModal');
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -36,7 +39,7 @@ export const PaymentModal = ({ isOpen, onClose, onSelect }: PaymentModalProps) =
       const res = await $api.get('/payments/methods');
       setCards(res.data);
     } catch (err) {
-      console.error("Ошибка загрузки карт", err);
+      console.error(t("error"), err);
     } finally {
       setLoading(false);
     }
@@ -99,20 +102,20 @@ export const PaymentModal = ({ isOpen, onClose, onSelect }: PaymentModalProps) =
             <X size={24} />
           </button>
         </div>
-        <h2 className="text-xl font-bold">Выберите способ оплаты</h2>
-        <p className="font-[15px] text-gray-600 mb-[20px]">Обновите данные для оплаты</p>
+        <h2 className="text-xl font-bold">{t("choose")}</h2>
+        <p className="font-[15px] text-gray-600 mb-[20px]">{t("update")}</p>
 
         <div className="overflow-y-auto flex-1 space-y-3 pr-2 custom-scrollbar">
           {loading ? (
-            <div className="text-center py-10 text-gray-400">Загрузка ваших карт...</div>
+            <div className="text-center py-10 text-gray-400">{t("uploading")}</div>
           ) : cards.length === 0 ? (
             <div className="text-center py-6">
-               <p className="text-gray-500 mb-6">У вас пока нет привязанных карт</p>
+               <p className="text-gray-500 mb-6">{t("donHave")}</p>
                <button 
                 onClick={() => window.location.href = '/profile?tab=cards'}
                 className="bg-[#1565C0] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#0D47A1] transition-all"
                >
-                 Добавить карту в профиле
+                {t("add")}
                </button>
             </div>
           ) : (
@@ -120,7 +123,7 @@ export const PaymentModal = ({ isOpen, onClose, onSelect }: PaymentModalProps) =
               {cards.map((card) => (
                 <div 
                   key={card.id}
-                  onClick={() => onSelect(card)} // Передаем объект card
+                  onClick={() => onSelect(card)}
                   className="flex items-center gap-4 p-4 border border-gray-100 rounded-2xl hover:border-[#1565C0] hover:bg-blue-50 cursor-pointer transition-all group"
                 >
                   <div className="shrink-0">
@@ -128,7 +131,7 @@ export const PaymentModal = ({ isOpen, onClose, onSelect }: PaymentModalProps) =
                   </div>
                   <div className="flex-1">
                     <p className="first-letter:uppercase text-[16px] text-gray-600">
-                      {card.card_type} заканчивается на {card.last_four_digits}
+                      {card.card_type} {t("ends")} {card.last_four_digits}
                     </p>
                   </div>
                   <div className="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-[#1565C0]">
@@ -141,7 +144,7 @@ export const PaymentModal = ({ isOpen, onClose, onSelect }: PaymentModalProps) =
                 onClick={() => window.location.href = '/profile?tab=cards'}
                 className="w-full flex items-center justify-between gap-2 p-4 text-[#1565C0] font-bold border-2 border-blue-200 border-gray-100 rounded-2xl hover:bg-blue-50 transition-all mt-4"
               >
-                <span>Добавить новую карту</span>
+                <span>{t("new")}</span>
                 <Plus size={20} /> 
               </button>
             </>

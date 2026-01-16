@@ -2,19 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { Product } from '@/types';
-import { useAuthStore } from '@/store/useAuthStore'; // Импортируем стор
-import { useRouter } from 'next/navigation'; // Импортируем роутер для редиректа
+import { useAuthStore } from '@/store/useAuthStore';
+import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+
 
 interface AddToCartButtonProps {
   product: Product;
-  className?: string; // Пропс для кастомных стилей
+  className?: string;
 }
 
 export default function AddToCartButton({ product, className }: AddToCartButtonProps) {
   const [count, setCount] = useState(0);
-
-  const { isAuth } = useAuthStore(); // Получаем статус авторизации
-  const router = useRouter(); // Инициализируем роутер
+  const { isAuth } = useAuthStore();
+  const router = useRouter();
+  const t = useTranslations("AddToCartButton");
   
 
   useEffect(() => {
@@ -49,7 +51,6 @@ export default function AddToCartButton({ product, className }: AddToCartButtonP
     }
     setCount(newCount);
     
-    // Вызываем событие для обновления счетчика в хедере, если оно у тебя настроено
     window.dispatchEvent(new Event('storage'));
   };
 
@@ -63,19 +64,17 @@ export default function AddToCartButton({ product, className }: AddToCartButtonP
     updateCart(count - 1);
   };
 
-  // Состояние: Товар НЕ в корзине
   if (count === 0) {
     return (
       <button 
         onClick={handleIncrement}
         className={`${className ? className : 'bg-[#F4F4F4] text-[#212121]'} mt-[25px] w-full h-[40px] rounded-xl font-medium transition-all duration-300 hover:bg-[#1565C0] hover:text-white hover:shadow-lg active:scale-95`}
       >
-        В корзину
+        {t("addToCart")}
       </button>
     );
   }
 
-  // Состояние: Товар В корзине (счетчик)
   return (
     <div className={`mt-[25px] flex items-center justify-between w-full h-[40px] rounded-xl font-medium overflow-hidden shadow-md border border-[#1565C0] bg-white`}>
       <button 

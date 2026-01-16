@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@/navigation'
 import { Product } from '@/types';
+import { useTranslations } from 'next-intl';
+
+
 
 interface CartItem extends Product {
   cartQuantity: number;
@@ -61,23 +64,14 @@ export default function BasketPage() {
     });
   };
 
-  // Функция для склонения (товар, товара, товаров)
-  const getNoun = (number: number, one: string, two: string, five: string) => {
-    let n = Math.abs(number);
-    n %= 100;
-    if (n >= 5 && n <= 20) return five;
-    n %= 10;
-    if (n === 1) return one;
-    if (n >= 2 && n <= 4) return two;
-    return five;
-  };
-
   const activeItems = cart.filter(i => i.cartQuantity > 0);
   const totalPrice = activeItems.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0);
   const totalCount = activeItems.reduce((s, i) => s + i.cartQuantity, 0);
 
+  const t = useTranslations('Cart');
+
   if (!isLoaded) {
-    return <div className="max-w-[1200px] mx-auto p-20 text-center">Загрузка...</div>;
+    return <div className="max-w-[1200px] mx-auto p-20 text-center">{t("loading")}</div>;
   }
 
   return (
@@ -106,11 +100,11 @@ export default function BasketPage() {
              </svg>
           </div>
           <div className="flex flex-col gap-[32px]">
-            <h3 className="font-bold text-[28px]">В корзине пока нет товаров</h3>
-            <p className="text-[18px]">Перейдите в каталог, чтобы наполнить ее</p>
+            <h3 className="font-bold text-[28px]">{t("noProducts")}</h3>
+            <p className="text-[18px]">{t("goTo")}</p>
             <Link href="/" >
               <button className="px-[32px] py-[9px] bg-[#1565C0] text-white rounded-[12px]">
-                Начать покупки
+                {t("start")}
               </button>
             </Link>
           </div>
@@ -122,13 +116,13 @@ export default function BasketPage() {
                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                  <path d="M12.5 15.8334L7.5 10L12.5 4.16671" stroke="#212121" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                </svg>
-               <p className="text-[16px]">Главная</p>
+               <p className="text-[16px]">{t("main")}</p>
             </Link>
             <div className="flex items-end w-[880px] justify-between">
               <div className="flex items-end">
-                <h1 className="font-bold text-[24px] mr-[10px]">Корзина</h1>
+                <h1 className="font-bold text-[24px] mr-[10px]">{t("cart")}</h1>
                 <p className="text-[15px] text-[#757575]">
-                  {totalCount} {getNoun(totalCount, 'товар', 'товара', 'товаров')}
+                  {t('products_count', { count: totalCount })}
                 </p>
               </div>
               <button onClick={() => setShowConfirm(true)} className="flex gap-[10px] items-center hover:opacity-70 transition-opacity">
@@ -138,7 +132,7 @@ export default function BasketPage() {
                   <path d="M8.9585 8.33329C8.9585 7.98812 8.67867 7.70829 8.3335 7.70829C7.98832 7.70829 7.7085 7.98812 7.7085 8.33329V15C7.7085 15.3451 7.98832 15.625 8.3335 15.625C8.67867 15.625 8.9585 15.3451 8.9585 15V8.33329Z" fill="#757575"/>
                   <path d="M12.2918 8.33329C12.2918 7.98812 12.012 7.70829 11.6668 7.70829C11.3217 7.70829 11.0418 7.98812 11.0418 8.33329V15C11.0418 15.3451 11.3217 15.625 11.6668 15.625C12.012 15.625 12.2918 15.3451 12.2918 15V8.33329Z" fill="#757575"/>
                 </svg>
-                <p className="text-[#757575]">Очистить</p>
+                <p className="text-[#757575]">{t("clear")}</p>
               </button>
               {showConfirm && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
@@ -155,9 +149,9 @@ export default function BasketPage() {
                         </svg>
                       </button>
                     </div>
-                    <h3 className="text-[20px] font-bold mt-[16px] text-[#181D27]">Очистить корзину</h3>
+                    <h3 className="text-[20px] font-bold mt-[16px] text-[#181D27]">{t("empty")}</h3>
                     <p className="text-[16px] leading-[20px] text-gray-500 mb-[32px]">
-                      Все товары будут удалены. Это действие нельзя отменить.
+                      {t("warning")}
                     </p>
                     
                     <div className="flex gap-[12px] h-[42px]">
@@ -165,7 +159,7 @@ export default function BasketPage() {
                         onClick={() => setShowConfirm(false)}
                         className="flex-1 border-2 border-gray-300 rounded-[8px] text-gray-700 font-bold hover:bg-gray-100 transition-colors"
                       >
-                        Отменить
+                        {t("cancel")}
                       </button>
                       <button 
                         onClick={() => {
@@ -174,7 +168,7 @@ export default function BasketPage() {
                         }}
                         className="flex-1 bg-red-600 font-bold text-white rounded-[8px] hover:bg-red-700 transition-colors shadow-lg shadow-red-100"
                       >
-                        Удалить
+                        {t("remove")}
                       </button>
                     </div>
                   </div>
@@ -195,7 +189,7 @@ export default function BasketPage() {
                       {item.image_url ? (
                         <img src={`http://localhost:3000/uploads/${item.image_url}`} className="w-full h-full object-cover" alt={item.name} />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Нет фото</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">{t("no")}</div>
                       )}
                     </div>
                     
@@ -210,7 +204,7 @@ export default function BasketPage() {
                           onClick={() => updateQuantity(item.id, 1)}
                           className="bg-[#E7F2FF] text-[#1565C0] text-[14px] rounded-[12px] h-[35px] w-[100px] hover:bg-[#D1E7FF] transition-all active:scale-95"
                         >
-                          Вернуть
+                          {t("return")}
                         </button>
                       ) : (
                         <div className="flex items-center bg-[#E7F2FF] rounded-[12px] h-[35px] w-[100px] overflow-hidden border border-transparent">
@@ -246,22 +240,22 @@ export default function BasketPage() {
 
             <div className="w-[390px] sticky top-10 border border-[#757575]/50 rounded-[15px]">
               <div className="p-[20px]">
-                <h2 className="text-[24px] font-bold mb-[10px]">Информация о заказе</h2>
-                <p className="text-[15px] text-[#757575]">Доставка 1 день</p>
+                <h2 className="text-[24px] font-bold mb-[10px]">{t("information")}</h2>
+                <p className="text-[15px] text-[#757575]">{t("delivery")}</p>
                 <div className="h-[2px] bg-[#1565C0]/50 my-[15px]"></div>
                 
                 <div className="flex flex-col mb-8 gap-3">
                   <div className="flex justify-between font-[15px]">
-                    <span>Товары</span>
+                    <span>{t("products")}</span>
                     <span className="font-[16px] font-bold">{formatPrice(totalPrice)} ₽</span>
                   </div>
                   <div className="flex justify-between font-[15px]">
-                    <span>Доставка</span>
+                    <span>{t("deliveryP")}</span>
                     <span className="font-[16px] font-bold">{formatPrice(deliveryPrice)} ₽</span>
                   </div>
                   <div className="h-[2px] bg-[#1565C0]/50 my-[15px]"></div>
                   <div className="flex justify-between items-end">
-                    <span className="text-[24px] font-bold">К оплате</span>
+                    <span className="text-[24px] font-bold">{t("paid")}</span>
                     <span className="text-[24px] font-bold leading-none">
                       {formatPrice(totalPrice + deliveryPrice)} ₽
                     </span>
@@ -269,7 +263,7 @@ export default function BasketPage() {
                 </div>
                 <Link href="/checkout">
                   <button className="w-full bg-[#1565C0] h-[47px] text-white rounded-[12px] text-[16px] font-bold hover:bg-[#0D47A1] transition-all shadow-xl shadow-blue-100 active:scale-[0.98]">
-                    Перейти к оплате
+                    {t("toPayment")}
                   </button>
                 </Link>
               </div>

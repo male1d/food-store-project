@@ -1,44 +1,115 @@
 'use client';
 
-
 import { useAuthStore } from "@/store/useAuthStore";
-
 import { CategoryModal } from "@/components/CategoryModal";
 import { useSearchParams } from 'next/navigation';
-
-
 import { Link, usePathname, useRouter } from '@/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { useState, useEffect, useRef } from 'react'; // Добавлен useRef
+import { useState, useEffect, useRef } from 'react';
+
+
+type Locale = 'ru' | 'en' | 'de';
+
+const langMap: Record<Locale, { label: string; full: string; flag: React.ReactNode }> = {
+  ru: { 
+    label: "rus", 
+    full: "Русский",
+    flag: (
+      <svg width="21" height="15" viewBox="0 0 21 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_785_13615)">
+        <mask id="mask0_785_13615" className="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="21" height="15">
+        <path d="M19 0H2C0.89543 0 0 0.89543 0 2V13C0 14.1046 0.89543 15 2 15H19C20.1046 15 21 14.1046 21 13V2C21 0.89543 20.1046 0 19 0Z" fill="white"/>
+        </mask>
+        <g mask="url(#mask0_785_13615)">
+        <path d="M19 0H2C0.89543 0 0 0.89543 0 2V13C0 14.1046 0.89543 15 2 15H19C20.1046 15 21 14.1046 21 13V2C21 0.89543 20.1046 0 19 0Z" fill="#0034A9"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M0 10H21V15H0V10Z" fill="#D7280F"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H21V5H0V0Z" fill="white"/>
+        <path d="M19 0.5H2C1.17157 0.5 0.5 1.17157 0.5 2V13C0.5 13.8284 1.17157 14.5 2 14.5H19C19.8284 14.5 20.5 13.8284 20.5 13V2C20.5 1.17157 19.8284 0.5 19 0.5Z" stroke="black" stroke-opacity="0.1"/>
+        </g>
+        </g>
+        <defs>
+        <clipPath id="clip0_785_13615">
+        <rect width="21" height="15" fill="white"/>
+        </clipPath>
+        </defs>
+      </svg>
+    )
+  },
+  en: { 
+    label: "eng", 
+    full: "English",
+    flag: (
+      <svg width="21" height="15" viewBox="0 0 21 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_785_13619)">
+        <mask id="mask0_785_13619" className="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="21" height="15">
+        <path d="M19 0H2C0.89543 0 0 0.89543 0 2V13C0 14.1046 0.89543 15 2 15H19C20.1046 15 21 14.1046 21 13V2C21 0.89543 20.1046 0 19 0Z" fill="white"/>
+        </mask>
+        <g mask="url(#mask0_785_13619)">
+        <path d="M19 0H2C0.89543 0 0 0.89543 0 2V13C0 14.1046 0.89543 15 2 15H19C20.1046 15 21 14.1046 21 13V2C21 0.89543 20.1046 0 19 0Z" fill="#22438B"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M2.99963 1L0.973633 1.026L0.999633 3L17.9816 14.028L20.0186 13.991L19.9806 12.029L2.99963 1Z" fill="white"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M2 1L1 2L19 14L20 13L2 1Z" fill="#C7152A"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M18.0002 1H20.0002V3C20.0002 3 8.25023 10.396 3.01823 14.028C2.95523 14.072 1.02023 14.031 1.02023 14.031L0.865234 12.13L18.0002 1Z" fill="white"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M19.043 0.97168L20 1.99968L2 13.9997L1 12.9997L19.043 0.97168Z" fill="#C7152A"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M8 1H13V5H20V10H13V14H8V10H1V5H8V1Z" fill="white"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M9 1H12V6H20V9H12V14H9V9H1V6H9V1Z" fill="#C7152A"/>
+        <path d="M19 0.5H2C1.17157 0.5 0.5 1.17157 0.5 2V13C0.5 13.8284 1.17157 14.5 2 14.5H19C19.8284 14.5 20.5 13.8284 20.5 13V2C20.5 1.17157 19.8284 0.5 19 0.5Z" stroke="black" stroke-opacity="0.1"/>
+        </g>
+        </g>
+        <defs>
+        <clipPath id="clip0_785_13619">
+        <rect width="21" height="15" fill="white"/>
+        </clipPath>
+        </defs>
+      </svg>
+    )
+  },
+  de: { 
+    label: "deu", 
+    full: "Deutsch",
+    flag: (
+      <svg width="21" height="15" viewBox="0 0 21 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_785_13626)">
+        <mask id="mask0_785_13626" className="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="21" height="15">
+        <path d="M19 0H2C0.89543 0 0 0.89543 0 2V13C0 14.1046 0.89543 15 2 15H19C20.1046 15 21 14.1046 21 13V2C21 0.89543 20.1046 0 19 0Z" fill="white"/>
+        </mask>
+        <g mask="url(#mask0_785_13626)">
+        <path d="M19 0H2C0.89543 0 0 0.89543 0 2V13C0 14.1046 0.89543 15 2 15H19C20.1046 15 21 14.1046 21 13V2C21 0.89543 20.1046 0 19 0Z" fill="#E00000"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M0 10H21V15H0V10Z" fill="#FFCF00"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H21V5H0V0Z" fill="black"/>
+        <path d="M19 0.5H2C1.17157 0.5 0.5 1.17157 0.5 2V13C0.5 13.8284 1.17157 14.5 2 14.5H19C19.8284 14.5 20.5 13.8284 20.5 13V2C20.5 1.17157 19.8284 0.5 19 0.5Z" stroke="black" stroke-opacity="0.1"/>
+        </g>
+        </g>
+        <defs>
+        <clipPath id="clip0_785_13626">
+        <rect width="21" height="15" fill="white"/>
+        </clipPath>
+        </defs>
+      </svg>
+    )
+  },
+};
+
+
+
 
 export default function Header() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  // Достаем данные и функции из глобального стора
   const { isAuth, token, userAddress, setUserAddress } = useAuthStore();
-  
   const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-
   const t = useTranslations('Header');
   const locale = useLocale();
-  // Состояние модалки языка
   const [isLangOpen, setIsLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
-
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Первичная загрузка адреса при входе или загрузке страницы
   useEffect(() => {
     const fetchDefaultAddress = async () => {
-      // Если не авторизован, стор и так содержит 'Укажите адрес' по умолчанию
       if (!token || !isAuth) return;
-      
+    
       try {
         const res = await fetch('http://localhost:3000/profile/addresses', {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -46,14 +117,11 @@ export default function Header() {
         
         if (res.ok) {
           const addresses = await res.json();
-          // Ищем основной адрес
           const defaultAddr = addresses.find((a: any) => a.is_default);
           
           if (defaultAddr) {
-            // Сохраняем в глобальный стор только улицу и дом
             setUserAddress(defaultAddr.address.split(',')[0]);
           } else if (addresses.length > 0) {
-            // Если дефолтного нет, берем первый попавшийся
             setUserAddress(addresses[0].address.split(',')[0]);
           }
         }
@@ -69,21 +137,17 @@ export default function Header() {
 
   const handleSelectCategory = (id: number | null) => {
     const params = new URLSearchParams(searchParams.toString());
-    
     if (id) {
       params.set('category', id.toString());
     } else {
       params.delete('category');
     }
     params.set('page', '1');
-
     router.push(`/?${params.toString()}`);
     setIsModalOpen(false);
   };
 
   const profileLink = isAuth ? "/profile" : "/login";
-
-
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -94,45 +158,29 @@ export default function Header() {
       } else {
         params.delete('search');
       }
-      params.set('page', '1'); // Сбрасываем на первую страницу при поиске
+      params.set('page', '1');
       router.push(`/?${params.toString()}`);
     }
   };
 
-
-
-
-
-
-useEffect(() => {
-  const closeLang = (e: MouseEvent) => {
-    if (langRef.current && !langRef.current.contains(e.target as Node)) {
-      setIsLangOpen(false);
-    }
-  };
-  document.addEventListener('mousedown', closeLang);
-  return () => document.removeEventListener('mousedown', closeLang);
-}, []);
-
-
-
-
-
-
-
+  useEffect(() => {
+    const closeLang = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setIsLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', closeLang);
+    return () => document.removeEventListener('mousedown', closeLang);
+  }, []);
 
   const pathname = usePathname();
 
-
-  // Эффект для очистки инпута при смене страницы
   useEffect(() => {
     const currentSearch = searchParams.get('search');
-    
-    // Если мы не на главной ИЛИ в URL нет поиска — очищаем инпут
+
     if (pathname !== '/' || !currentSearch) {
       setSearchQuery('');
     } else {
-      // Если вернулись на главную и поиск в URL есть — восстанавливаем его в инпуте
       setSearchQuery(currentSearch);
     }
   }, [pathname, searchParams]);
@@ -149,7 +197,6 @@ useEffect(() => {
       </Link>
 
       <div className="flex items-center gap-[15px]">
-        
         <button onClick={() => setIsModalOpen(true)} className="w-[50px] h-[46px] rounded-[20px] bg-[#1565C0] border-none flex items-center justify-center cursor-pointer">
           <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M3.125 8.125C3.125 5.76798 3.125 4.58947 3.85723 3.85723C4.58947 3.125 5.76798 3.125 8.125 3.125C10.482 3.125 11.6605 3.125 12.3928 3.85723C13.125 4.58947 13.125 5.76798 13.125 8.125C13.125 10.482 13.125 11.6605 12.3928 12.3928C11.6605 13.125 10.482 13.125 8.125 13.125C5.76798 13.125 4.58947 13.125 3.85723 12.3928C3.125 11.6605 3.125 10.482 3.125 8.125Z" stroke="white" strokeWidth="1.5"/>
@@ -179,18 +226,59 @@ useEffect(() => {
             <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M4.0625 12.6791C4.0625 6.55534 8.94377 1.5625 15 1.5625C21.0562 1.5625 25.9375 6.55534 25.9375 12.6791C25.9375 15.6355 25.095 18.8099 23.6056 21.5523C22.118 24.2914 19.9445 26.6715 17.2256 27.9424C15.8132 28.6025 14.1868 28.6025 12.7744 27.9424C10.0555 26.6715 7.88202 24.2914 6.39444 21.5523C4.90504 18.8099 4.0625 15.6355 4.0625 12.6791ZM15 3.4375C10.0105 3.4375 5.9375 7.55935 5.9375 12.6791C5.9375 15.3005 6.69079 18.1693 8.04213 20.6575C9.3953 23.1491 11.3075 25.187 13.5683 26.2438C14.4776 26.6687 15.5224 26.6687 16.4317 26.2438C18.6925 25.187 20.6047 23.1491 21.9579 20.6575C23.3092 18.1693 24.0625 15.3005 24.0625 12.6791C24.0625 7.55935 19.9895 3.4375 15 3.4375ZM15 9.6875C13.4467 9.6875 12.1875 10.9467 12.1875 12.5C12.1875 14.0533 13.4467 15.3125 15 15.3125C16.5533 15.3125 17.8125 14.0533 17.8125 12.5C17.8125 10.9467 16.5533 9.6875 15 9.6875ZM10.3125 12.5C10.3125 9.91117 12.4112 7.8125 15 7.8125C17.5888 7.8125 19.6875 9.91117 19.6875 12.5C19.6875 15.0888 17.5888 17.1875 15 17.1875C12.4112 17.1875 10.3125 15.0888 10.3125 12.5Z" fill="#1565C0"/>
             </svg>
-            {userAddress}
+            {userAddress || t("address")}
           </button>
         </Link>
-        
       </div>
 
       <div className="flex gap-[15px]">
-        <Link href="/" className="w-[40px] h-[40px] rounded-[20px] bg-transparent border-none flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors group">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M16.5081 8.97739C16.1929 9.07723 15.8817 9.19071 15.5752 9.31764C14.1724 9.89871 12.8978 10.7504 11.8241 11.8241C10.7504 12.8978 9.89871 14.1724 9.31764 15.5752C8.8565 16.6885 8.57296 17.8652 8.47557 19.0625H14.0762C14.1162 17.6926 14.2437 16.3426 14.4557 15.0632C14.7156 13.4945 15.0996 12.0489 15.594 10.813C15.8639 10.1382 16.1689 9.52052 16.5081 8.97739ZM20 6.5625C18.2354 6.5625 16.488 6.91007 14.8577 7.58537C13.2274 8.26067 11.746 9.25046 10.4983 10.4983C9.25047 11.746 8.26067 13.2274 7.58537 14.8577C6.91007 16.488 6.5625 18.2354 6.5625 20C6.5625 21.7646 6.91007 23.512 7.58537 25.1423C8.26067 26.7726 9.25046 28.254 10.4983 29.5017C11.746 30.7495 13.2274 31.7393 14.8577 32.4146C16.488 33.0899 18.2354 33.4375 20 33.4375C21.7646 33.4375 23.512 33.0899 25.1423 32.4146C26.7726 31.7393 28.254 30.7495 29.5017 29.5017C30.7495 28.254 31.7393 26.7726 32.4146 25.1423C33.0899 23.512 33.4375 21.7646 33.4375 20C33.4375 18.2354 33.0899 16.488 32.4146 14.8577C31.7393 13.2274 30.7495 11.746 29.5018 10.4983C28.254 9.25047 26.7726 8.26067 25.1423 7.58537C23.512 6.91007 21.7646 6.5625 20 6.5625ZM20 8.4375C19.6734 8.4375 19.2515 8.59474 18.761 9.10275C18.2668 9.61451 17.772 10.4166 17.3349 11.5093C16.9007 12.5949 16.5481 13.9053 16.3055 15.3697C16.1108 16.5446 15.9915 17.7914 15.952 19.0625L24.048 19.0625C24.0085 17.7914 23.8892 16.5446 23.6945 15.3697C23.4519 13.9053 23.0993 12.5949 22.6651 11.5093C22.228 10.4166 21.7332 9.61451 21.239 9.10275C20.7485 8.59474 20.3266 8.4375 20 8.4375ZM25.9238 19.0625C25.8838 17.6926 25.7563 16.3426 25.5443 15.0632C25.2844 13.4945 24.9004 12.0489 24.406 10.813C24.1361 10.1382 23.8311 9.52052 23.4919 8.97739C23.8071 9.07723 24.1183 9.19071 24.4248 9.31764C25.8276 9.89871 27.1022 10.7504 28.1759 11.8241C29.2496 12.8978 30.1013 14.1724 30.6824 15.5752C31.1435 16.6885 31.427 17.8652 31.5244 19.0625H25.9238ZM24.048 20.9375L15.952 20.9375C15.9915 22.2086 16.1108 23.4554 16.3055 24.6303C16.5481 26.0947 16.9007 27.4051 17.3349 28.4907C17.772 29.5834 18.2668 30.3855 18.761 30.8973C19.2515 31.4053 19.6734 31.5625 20 31.5625C20.3266 31.5625 20.7485 31.4053 21.239 30.8973C21.7332 30.3855 22.228 29.5834 22.6651 28.4907C23.0993 27.4051 23.4519 26.0947 23.6945 24.6303C23.8892 23.4554 24.0085 22.2086 24.048 20.9375ZM23.4919 31.0226C23.8311 30.4795 24.1361 29.8618 24.406 29.187C24.9004 27.9511 25.2844 26.5055 25.5443 24.9368C25.7563 23.6574 25.8838 22.3074 25.9238 20.9375H31.5244C31.427 22.1348 31.1435 23.3115 30.6824 24.4248C30.1013 25.8276 29.2496 27.1022 28.1759 28.1759C27.1022 29.2496 25.8276 30.1013 24.4248 30.6824C24.1183 30.8093 23.8071 30.9228 23.4919 31.0226ZM16.5081 31.0226C16.1689 30.4795 15.8639 29.8618 15.594 29.187C15.0996 27.9511 14.7156 26.5055 14.4557 24.9368C14.2437 23.6574 14.1162 22.3074 14.0762 20.9375H8.47557C8.57296 22.1348 8.8565 23.3115 9.31764 24.4248C9.89871 25.8276 10.7504 27.1022 11.8241 28.1759C12.8978 29.2496 14.1724 30.1013 15.5752 30.6824C15.8817 30.8093 16.1929 30.9228 16.5081 31.0226Z" fill="#1565C0"/>
-          </svg>
-        </Link>
+        <div className="relative" ref={langRef}>
+          <button 
+            onClick={() => setIsLangOpen(!isLangOpen)}
+            className=" w-[75px] h-[40px] flex items-center rounded-[12px]  font-bold text-[#1565C0] hover:bg-gray-100 transition-all group"
+          >
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M16.5081 8.97739C16.1929 9.07723 15.8817 9.19071 15.5752 9.31764C14.1724 9.89871 12.8978 10.7504 11.8241 11.8241C10.7504 12.8978 9.89871 14.1724 9.31764 15.5752C8.8565 16.6885 8.57296 17.8652 8.47557 19.0625H14.0762C14.1162 17.6926 14.2437 16.3426 14.4557 15.0632C14.7156 13.4945 15.0996 12.0489 15.594 10.813C15.8639 10.1382 16.1689 9.52052 16.5081 8.97739ZM20 6.5625C18.2354 6.5625 16.488 6.91007 14.8577 7.58537C13.2274 8.26067 11.746 9.25046 10.4983 10.4983C9.25047 11.746 8.26067 13.2274 7.58537 14.8577C6.91007 16.488 6.5625 18.2354 6.5625 20C6.5625 21.7646 6.91007 23.512 7.58537 25.1423C8.26067 26.7726 9.25046 28.254 10.4983 29.5017C11.746 30.7495 13.2274 31.7393 14.8577 32.4146C16.488 33.0899 18.2354 33.4375 20 33.4375C21.7646 33.4375 23.512 33.0899 25.1423 32.4146C26.7726 31.7393 28.254 30.7495 29.5017 29.5017C30.7495 28.254 31.7393 26.7726 32.4146 25.1423C33.0899 23.512 33.4375 21.7646 33.4375 20C33.4375 18.2354 33.0899 16.488 32.4146 14.8577C31.7393 13.2274 30.7495 11.746 29.5018 10.4983C28.254 9.25047 26.7726 8.26067 25.1423 7.58537C23.512 6.91007 21.7646 6.5625 20 6.5625ZM20 8.4375C19.6734 8.4375 19.2515 8.59474 18.761 9.10275C18.2668 9.61451 17.772 10.4166 17.3349 11.5093C16.9007 12.5949 16.5481 13.9053 16.3055 15.3697C16.1108 16.5446 15.9915 17.7914 15.952 19.0625L24.048 19.0625C24.0085 17.7914 23.8892 16.5446 23.6945 15.3697C23.4519 13.9053 23.0993 12.5949 22.6651 11.5093C22.228 10.4166 21.7332 9.61451 21.239 9.10275C20.7485 8.59474 20.3266 8.4375 20 8.4375ZM25.9238 19.0625C25.8838 17.6926 25.7563 16.3426 25.5443 15.0632C25.2844 13.4945 24.9004 12.0489 24.406 10.813C24.1361 10.1382 23.8311 9.52052 23.4919 8.97739C23.8071 9.07723 24.1183 9.19071 24.4248 9.31764C25.8276 9.89871 27.1022 10.7504 28.1759 11.8241C29.2496 12.8978 30.1013 14.1724 30.6824 15.5752C31.1435 16.6885 31.427 17.8652 31.5244 19.0625H25.9238ZM24.048 20.9375L15.952 20.9375C15.9915 22.2086 16.1108 23.4554 16.3055 24.6303C16.5481 26.0947 16.9007 27.4051 17.3349 28.4907C17.772 29.5834 18.2668 30.3855 18.761 30.8973C19.2515 31.4053 19.6734 31.5625 20 31.5625C20.3266 31.5625 20.7485 31.4053 21.239 30.8973C21.7332 30.3855 22.228 29.5834 22.6651 28.4907C23.0993 27.4051 23.4519 26.0947 23.6945 24.6303C23.8892 23.4554 24.0085 22.2086 24.048 20.9375ZM23.4919 31.0226C23.8311 30.4795 24.1361 29.8618 24.406 29.187C24.9004 27.9511 25.2844 26.5055 25.5443 24.9368C25.7563 23.6574 25.8838 22.3074 25.9238 20.9375H31.5244C31.427 22.1348 31.1435 23.3115 30.6824 24.4248C30.1013 25.8276 29.2496 27.1022 28.1759 28.1759C27.1022 29.2496 25.8276 30.1013 24.4248 30.6824C24.1183 30.8093 23.8071 30.9228 23.4919 31.0226ZM16.5081 31.0226C16.1689 30.4795 15.8639 29.8618 15.594 29.187C15.0996 27.9511 14.7156 26.5055 14.4557 24.9368C14.2437 23.6574 14.1162 22.3074 14.0762 20.9375H8.47557C8.57296 22.1348 8.8565 23.3115 9.31764 24.4248C9.89871 25.8276 10.7504 27.1022 11.8241 28.1759C12.8978 29.2496 14.1724 30.1013 15.5752 30.6824C15.8817 30.8093 16.1929 30.9228 16.5081 31.0226Z" fill="#1565C0"/>
+            </svg>
+            <span className="text-[16px]">
+              {langMap[locale as Locale]?.label || locale}
+            </span>
+          </button>
+
+          {isLangOpen && (
+            <div className="absolute right-0 grid gap-[5px] mt-[2px] w-[210px] bg-white border border-gray-100 shadow-2xl rounded-xl overflow-hidden p-[4px] z-[100]">
+              {(Object.keys(langMap) as Locale[]).map((lng) => (
+                <button
+                  key={lng}
+                  onClick={() => {
+                    router.replace(pathname, { locale: lng });
+                    setIsLangOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-[8px] px-[12px] rounded-[12px] py-[5px] text-[15px] transition-colors group ${
+                    locale === lng ? 'bg-gray-100' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center">
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                      locale === lng ? 'border-[#1565C0] bg-white' : 'border-gray-300 group-hover:border-gray-400'
+                    }`}>
+                      {locale === lng && (
+                        <div className="w-2 h-2 rounded-full bg-[#1565C0]" />
+                      )}
+                    </div>
+                  </div>
+                  <span className="flex items-center shrink-0">
+                    {langMap[lng].flag}
+                  </span>
+                  <span className={`flex-1 text-left`}>
+                    {langMap[lng].full}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <Link href="/cart" className="w-[40px] h-[40px] rounded-[20px] bg-transparent border-none flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors group">
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M15.9375 21.25C15.9375 20.7322 15.5178 20.3125 15 20.3125C14.4822 20.3125 14.0625 20.7322 14.0625 21.25V26.25C14.0625 26.7678 14.4822 27.1875 15 27.1875C15.5178 27.1875 15.9375 26.7678 15.9375 26.25V21.25Z" fill="#1565C0"/>
@@ -206,67 +294,6 @@ useEffect(() => {
           </svg>
         </Link>
       </div>
-
-
-
-
-
-      <div className="relative" ref={langRef}>
-        <button 
-          onClick={() => setIsLangOpen(!isLangOpen)}
-          className="flex items-center gap-2 font-bold text-[#1565C0] uppercase p-2 hover:bg-gray-50 rounded-lg transition-all"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-          </svg>
-          {locale}
-        </button>
-
-        {isLangOpen && (
-          <div className="absolute right-0 mt-2 w-[150px] bg-white border border-gray-100 shadow-xl rounded-xl overflow-hidden py-1">
-            {['ru', 'en', 'de'].map((lng) => (
-              <button
-                key={lng}
-                onClick={() => {
-                  router.replace(pathname, { locale: lng as any });
-                  setIsLangOpen(false);
-                }}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-blue-50 transition-colors ${
-                  locale === lng ? 'text-[#1565C0] font-bold bg-blue-50/50' : 'text-gray-600'
-                }`}
-              >
-                {lng === 'ru' ? '🇷🇺 Русский' : lng === 'en' ? '🇺🇸 English' : '🇩🇪 Deutsch'}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-
-
-
-
-
-
     </header>
   );
 }
-
-
-
-
-
-
-/* import { useTranslations } from 'next-intl';
-import { Link } from '@/navigation'; // Твой новый Link
-
-export default function Header() {
-  const t = useTranslations('Header');
-
-  return (
-    <header>
-      <Link href="/">{t('catalog')}</Link>
-      <Link href="/cart">{t('cart')}</Link>
-    </header>
-  );
-} */

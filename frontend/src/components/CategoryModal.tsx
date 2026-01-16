@@ -1,6 +1,8 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+
 
 export const CategoryModal = ({ isOpen, onClose, onSelectCategory }: any) => {
   const [categories, setCategories] = useState<any[]>([]);

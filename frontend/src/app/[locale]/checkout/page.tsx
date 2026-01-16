@@ -7,12 +7,11 @@ import $api from '@/api/axios';
 import { Product } from '@/types';
 import { Link } from '@/navigation'
 import { CreditCard } from 'lucide-react';
-
-
-// Импортируем будущие компоненты модалок (пока создадим заглушки ниже)
 import { AddressModal } from './components/AddressModal';
 import { PaymentModal } from './components/PaymentModal';
 import { DateModal } from './components/DateModal';
+import { useTranslations } from 'next-intl';
+
 
 
 interface CartItem extends Product {
@@ -27,22 +26,19 @@ interface ICard {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { isAuth, user, token } = useAuthStore();
-  
+  const { user, token } = useAuthStore();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOrderSuccess, setIsOrderSuccess] = useState(false);
-  
-  // Состояния для выбранных данных
   const [selectedAddress, setSelectedAddress] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>('');
-
-  // Состояния для открытия модалок
   const [activeModal, setActiveModal] = useState<'address' | 'payment' | 'date' | null>(null); 
   const deliveryPrice = 200;
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.cartQuantity, 0);
-
   const [selectedCard, setSelectedCard] = useState<ICard | null>(null);
+
+
+  const t = useTranslations('Checkout');
 
   const formatPrice = (price: number) => {
     return price.toLocaleString('ru-RU', {
@@ -60,7 +56,6 @@ export default function CheckoutPage() {
     if (savedCart.length === 0) { router.push('/cart'); return; }
     setCart(savedCart);
     
-    // Загружаем адрес по умолчанию из API
     fetchDefaultAddress();
   }, [token]);
 
@@ -104,9 +99,9 @@ export default function CheckoutPage() {
 
 
   const handleSubmit = async () => {
-    if (!selectedAddress) return alert("Выберите адрес");
+    if (!selectedAddress) return alert(t("selectAddress"));
     setLoading(true);
-    if (!selectedCard) return alert("Выберите карту для оплаты");
+    if (!selectedCard) return alert(t("selectCard"));
     try {
       await $api.post('/orders', {
         delivery_address: selectedAddress,
@@ -124,14 +119,14 @@ export default function CheckoutPage() {
       setIsOrderSuccess(true);
       setTimeout(() => router.push('/profile'), 3000);
     } catch (error: any) {
-      alert("Ошибка при оформлении");
+      alert(t("error"));
     } finally { setLoading(false); }
   };
 
   if (isOrderSuccess) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-      <h1 className="text-3xl font-bold text-green-600 mb-2">Заказ принят!</h1>
-      <p className="text-gray-500">Доставка на {selectedDate}</p>
+      <h1 className="text-3xl font-bold text-green-600 mb-2">{t("accepted")}</h1>
+      <p className="text-gray-500">{t("delivery")} {selectedDate}</p>
     </div>
   );
 
@@ -142,22 +137,19 @@ export default function CheckoutPage() {
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12.5 15.8334L7.5 10L12.5 4.16671" stroke="#212121" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <p className="text-[16px]">Вернуться в корзину</p>
+            <p className="text-[16px]">{t("goBack")}</p>
         </Link>
         <div className="flex items-end w-[880px] justify-between">
           <div className="flex items-end">
-            <h1 className="font-bold text-[24px] mr-[10px]">Оформление заказа</h1>
+            <h1 className="font-bold text-[24px] mr-[10px]">{t("making")}</h1>
           </div>
         </div>
       </div>
       <div className="flex gap-10 flex-col lg:flex-row items-start justify-between">
 
-
-
         <div className="flex flex-col gap-[25px] w-[860px]">
-            {/* КНОПКА-ВЫБОР ОПЛАТЫ */}
             <div>
-              <h3 className="text-[18px] font-bold mb-[10px]">Способ оплаты</h3>
+              <h3 className="text-[18px] font-bold mb-[10px]">{t("paymentMethod")}</h3>
               <button 
                 onClick={() => setActiveModal('payment')}
                 className="w-full flex items-center justify-between bg-white py-[20px] px-[25px] rounded-[12px] border border-[#E0E0E0] hover:border-blue-300 transition-all text-left"
@@ -172,10 +164,10 @@ export default function CheckoutPage() {
                   <p className="text-[16px]">
                     {selectedCard ? (
                       <p className="first-letter:uppercase text-[16px]">
-                        {selectedCard.card_type} заканчивается на {selectedCard.last_four_digits}
+                        {selectedCard.card_type} {t("ends")} {selectedCard.last_four_digits}
                       </p>
                     ) : (
-                      'Выберите карту для оплаты'
+                      `${t("selectCard")}`
                     )}
                   </p>
                 </div>
@@ -185,9 +177,8 @@ export default function CheckoutPage() {
               </button>
             </div>
 
-            {/* КНОПКА-ВЫБОР АДРЕСА */}
             <div>
-              <h3 className="text-[18px] font-bold mb-[10px]">Адрес доставки</h3>
+              <h3 className="text-[18px] font-bold mb-[10px]">{t("deliveryA")}</h3>
               <button 
                 onClick={() => setActiveModal('address')}
                 className="w-full flex items-center justify-between bg-white py-[20px] px-[25px] rounded-[12px] border border-[#E0E0E0] hover:border-blue-300 transition-all text-left"
@@ -199,7 +190,7 @@ export default function CheckoutPage() {
                     <path d="M20.9605 15.5C21.6259 16.1025 22 16.7816 22 17.5C22 19.9853 17.5228 22 12 22C6.47715 22 2 19.9853 2 17.5C2 16.7816 2.37412 16.1025 3.03947 15.5" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"/>
                   </svg>
                   <p className="text-[16px]">
-                    {selectedAddress || 'Выберите адрес'}
+                    {selectedAddress || t("selectA")}
                   </p>
                 </div>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -208,10 +199,8 @@ export default function CheckoutPage() {
               </button>
             </div>
             
-            
-            {/* КНОПКА-ВЫБОР ДАТЫ */}
             <div>
-              <h3 className="text-[18px] font-bold mb-[10px]">Дата доставки</h3>
+              <h3 className="text-[18px] font-bold mb-[10px]">{t("deliveryDate")}</h3>
               <button 
                 onClick={() => setActiveModal('date')}
                 className="w-full flex items-center justify-between bg-white py-[20px] px-[25px] rounded-[12px] border border-[#E0E0E0] hover:border-blue-300 transition-all text-left"
@@ -222,7 +211,7 @@ export default function CheckoutPage() {
                     <path d="M5.60423 5.60414L5.0739 5.07381V5.07381L5.60423 5.60414ZM4.33785 6.87052L3.58786 6.87429C3.58993 7.28556 3.92282 7.61844 4.33408 7.62051L4.33785 6.87052ZM6.87964 7.6333C7.29384 7.63539 7.63131 7.30129 7.63339 6.88708C7.63548 6.47287 7.30138 6.1354 6.88717 6.13332L6.8834 6.88331L6.87964 7.6333ZM5.07505 4.3212C5.07297 3.90699 4.7355 3.5729 4.32129 3.57498C3.90708 3.57706 3.57299 3.91453 3.57507 4.32874L4.32506 4.32497L5.07505 4.3212ZM3.8267 10.7849C3.88295 10.3745 3.59587 9.99627 3.1855 9.94002C2.77512 9.88377 2.39684 10.1708 2.34059 10.5812L3.08365 10.6831L3.8267 10.7849ZM18.332 5.6681L18.8623 5.13777C15.0421 1.31758 8.86882 1.27889 5.0739 5.07381L5.60423 5.60414L6.13456 6.13447C9.33367 2.93536 14.5572 2.95395 17.8017 6.19843L18.332 5.6681ZM5.66819 18.3319L5.13786 18.8622C8.95805 22.6824 15.1314 22.7211 18.9263 18.9262L18.396 18.3959L17.8656 17.8655C14.6665 21.0646 9.443 21.0461 6.19852 17.8016L5.66819 18.3319ZM18.396 18.3959L18.9263 18.9262C22.7212 15.1313 22.6825 8.95796 18.8623 5.13777L18.332 5.6681L17.8017 6.19843C21.0461 9.44291 21.0647 14.6664 17.8656 17.8655L18.396 18.3959ZM5.60423 5.60414L5.0739 5.07381L3.80752 6.34019L4.33785 6.87052L4.86818 7.40085L6.13456 6.13447L5.60423 5.60414ZM4.33785 6.87052L4.33408 7.62051L6.87964 7.6333L6.8834 6.88331L6.88717 6.13332L4.34162 6.12053L4.33785 6.87052ZM4.33785 6.87052L5.08784 6.86675L5.07505 4.3212L4.32506 4.32497L3.57507 4.32874L3.58786 6.87429L4.33785 6.87052ZM3.08365 10.6831L2.34059 10.5812C1.93916 13.5099 2.87401 16.5984 5.13786 18.8622L5.66819 18.3319L6.19852 17.8016C4.27795 15.881 3.48673 13.2652 3.8267 10.7849L3.08365 10.6831Z" fill="#1C274C"/>
                   </svg>
                   <p className="text-[16px]">
-                    {selectedDate || 'Выберите дату доставки'}
+                    {selectedDate || t("selectD")}
                   </p>
                 </div>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -232,27 +221,24 @@ export default function CheckoutPage() {
             </div>
         </div>
 
-
-
-        {/* ИТОГО */}
         <div className="w-[390px] sticky top-10 border border-[#757575]/50 rounded-[15px]">
           <div className="p-[20px]">
-            <h2 className="text-[24px] font-bold mb-[10px]">Информация о заказе</h2>
-            <p className="text-[15px] text-[#757575]">Доставка 1 день</p>
+            <h2 className="text-[24px] font-bold mb-[10px]">{t("orderInf")}</h2>
+            <p className="text-[15px] text-[#757575]">{t("deliveryD")}</p>
             <div className="h-[2px] bg-[#1565C0]/50 my-[15px]"></div>
             
             <div className="flex flex-col mb-8 gap-3">
               <div className="flex justify-between font-[15px]">
-                <span>Товары</span>
+                <span>{t("products")}</span>
                 <span className="font-[16px] font-bold">{formatPrice(totalPrice)} ₽</span>
               </div>
               <div className="flex justify-between font-[15px]">
-                <span>Доставка</span>
+                <span>{t("deli")}</span>
                 <span className="font-[16px] font-bold">{formatPrice(deliveryPrice)} ₽</span>
               </div>
               <div className="h-[2px] bg-[#1565C0]/50 my-[15px]"></div>
               <div className="flex justify-between items-end">
-                <span className="text-[24px] font-bold">К оплате</span>
+                <span className="text-[24px] font-bold">{t("bePaid")}</span>
                 <span className="text-[24px] font-bold leading-none">
                   {formatPrice(totalPrice + deliveryPrice)} ₽
                 </span>
@@ -263,13 +249,12 @@ export default function CheckoutPage() {
               disabled={loading || !selectedAddress || !selectedCard || !selectedDate}
               className="w-full bg-[#1565C0] h-[47px] text-white rounded-[12px] text-[16px] font-bold hover:bg-[#0D47A1] transition-all shadow-xl shadow-blue-100 active:scale-[0.98] disabled:opacity-50"
             >
-              {loading ? 'Оформление...' : 'Оплатить'}
+              {loading ? t("mak") : t("toPay")}
             </button>
           </div>
         </div>
       </div>
-      
-      {/* МОДАЛЬНЫЕ ОКНА */}
+
       <AddressModal 
         isOpen={activeModal === 'address'} 
         onClose={() => setActiveModal(null)} 
@@ -279,7 +264,7 @@ export default function CheckoutPage() {
         isOpen={activeModal === 'payment'} 
         onClose={() => setActiveModal(null)} 
         onSelect={(card) => {
-          setSelectedCard(card); // Сохраняем весь объект выбранной карты
+          setSelectedCard(card);
           setActiveModal(null);
         }}
       />

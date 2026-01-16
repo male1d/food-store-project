@@ -1,9 +1,13 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import $api from '@/api/axios';
-import { CreditCard, Trash2, Plus, X } from 'lucide-react';
+import { CreditCard, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import myIllustration from './Card.jpg';
+import { useTranslations } from 'next-intl';
+
+
 
 interface PaymentMethod {
   id: number;
@@ -17,9 +21,7 @@ export const CardsList = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [btnLoading, setBtnLoading] = useState(false);
-  
   const [deleteId, setDeleteId] = useState<number | null>(null);
-
   const [formData, setFormData] = useState({
     card_number: '',
     card_holder: '',
@@ -27,6 +29,8 @@ export const CardsList = () => {
     cvv: '',
     card_type: 'visa'
   });
+
+  const t = useTranslations('CardsList');
 
   const getCardIcon = (type: string, size = 24) => {
     const t = type.toLowerCase();
@@ -84,7 +88,7 @@ export const CardsList = () => {
       await $api.delete(`/payments/methods/${deleteId}`);
       setCards(cards.filter(c => c.id !== deleteId));
       setDeleteId(null);
-    } catch (err) { alert("Ошибка удаления"); }
+    } catch (err) { alert(t("deletError")); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,12 +105,11 @@ export const CardsList = () => {
     };
 
     try {
-      // Оставлено только создание новой карты
       await $api.post('/payments/methods', payload);
       setIsModalOpen(false);
       setFormData({ card_number: '', card_holder: '', expiry_date: '', cvv: '', card_type: 'visa' });
       fetchCards();
-    } catch (err) { alert("Ошибка сохранения"); }
+    } catch (err) { alert(t("savError")); }
     finally { setBtnLoading(false); }
   };
 
@@ -120,9 +123,6 @@ export const CardsList = () => {
   }, [isModalOpen]);
 
 
-
-
-
   const renderFormModal = isModalOpen && (
     <div className="fixed inset-0 z-[120] flex items-center justify-center  bg-black/50 backdrop-blur-sm overflow-y-auto">
       <div className="bg-white w-full max-w-[480px] rounded-[16px] p-[25px] shadow-2xl relative my-auto">
@@ -134,30 +134,30 @@ export const CardsList = () => {
         />
 
         <div className="my-[20px]">
-          <h2 className="text-[18px] font-bold">Добавьте новую карту</h2>
-          <p className="text-[#757575] text-[15px]">Введите данные новой карты</p>
+          <h2 className="text-[18px] font-bold">{t("addCard")}</h2>
+          <p className="text-[#757575] text-[15px]">{t("enterDetails")}</p>
         </div>
         
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-[16px]">
           <div>
-            <p className="text-[15px]">Номер карты</p>
+            <p className="text-[15px]">{t("number")}</p>
             <input required placeholder="0000 0000 0000 0000" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#1565C0]" value={formData.card_number} onChange={handleCardNumberChange} />
           </div>
           <div>
-            <p className="text-[15px]">Имя на карте</p>
+            <p className="text-[15px]">{t("name")}</p>
             <input required placeholder="Olivia Rhye" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-[#1565C0]" value={formData.card_holder} onChange={e => setFormData({...formData, card_holder: e.target.value})} />
           </div>
           <div>
-            <p className="text-[15px]">Срок</p>
+            <p className="text-[15px]">{t("term")}</p>
             <input required placeholder="06/28" className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-center outline-none focus:border-[#1565C0]" value={formData.expiry_date} onChange={handleExpiryChange} />
           </div>
           <div>
-            <p className="text-[15px]">CVV</p>
+            <p className="text-[15px]">{t("cvv")}</p>
             <input required type="password" placeholder="•••" maxLength={3} className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-center outline-none focus:border-[#1565C0]" value={formData.cvv} onChange={e => setFormData({...formData, cvv: e.target.value.replace(/\D/g, '')})} />
           </div>
-          <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors">Отмена</button>
+          <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors">{t("cancel")}</button>
           <button type="submit" disabled={btnLoading} className="flex-1 py-3 bg-[#1565C0] text-white rounded-xl font-medium hover:bg-[#0D47A1] transition-colors">
-            {btnLoading ? '...' : 'Добавить'}
+            {btnLoading ? '...' : `${t("add")}`}
           </button>
         </form>
       </div>
@@ -170,16 +170,16 @@ export const CardsList = () => {
     return (
       <div className="animate-in fade-in">
         <div className="flex justify-between">
-          <h3 className="text-[18px] font-bold">Способы оплаты</h3>
+          <h3 className="text-[18px] font-bold">{t("methods")}</h3>
           <button onClick={() => setIsModalOpen(true)} className="flex gap-[15px]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12.75 4C12.75 3.58579 12.4142 3.25 12 3.25C11.5858 3.25 11.25 3.58579 11.25 4L11.25 11.25H4C3.58579 11.25 3.25 11.5858 3.25 12C3.25 12.4142 3.58579 12.75 4 12.75H11.25V20C11.25 20.4142 11.5858 20.75 12 20.75C12.4142 20.75 12.75 20.4142 12.75 20V12.75H20C20.4142 12.75 20.75 12.4142 20.75 12C20.75 11.5858 20.4142 11.25 20 11.25H12.75L12.75 4Z" fill="#1565C0"/>
             </svg>
-            <p className="text-[#1565C0] text-[16px]">Добавить карту</p>
+            <p className="text-[#1565C0] text-[16px]">{t("card")}</p>
           </button>
         </div>
         <div className="mt-[20px] py-5 border-2 border-dashed border-gray-200 rounded-xl text-center text-gray-400">
-          Карты не привязаны
+          {t("notLinked")}
         </div>
         {renderFormModal}
       </div>
@@ -189,12 +189,12 @@ export const CardsList = () => {
   return (
     <div className="animate-in fade-in">
       <div className="flex justify-between mb-[15px]">
-        <h3 className="text-[18px] font-bold">Способы оплаты</h3>
+        <h3 className="text-[18px] font-bold">{t("methods")}</h3>
         <button onClick={() => setIsModalOpen(true)} className="flex gap-[15px]">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12.75 4C12.75 3.58579 12.4142 3.25 12 3.25C11.5858 3.25 11.25 3.58579 11.25 4L11.25 11.25H4C3.58579 11.25 3.25 11.5858 3.25 12C3.25 12.4142 3.58579 12.75 4 12.75H11.25V20C11.25 20.4142 11.5858 20.75 12 20.75C12.4142 20.75 12.75 20.4142 12.75 20V12.75H20C20.4142 12.75 20.75 12.4142 20.75 12C20.75 11.5858 20.4142 11.25 20 11.25H12.75L12.75 4Z" fill="#1565C0"/>
           </svg>
-          <p className="text-[#1565C0] text-[16px]">Добавить карту</p>
+          <p className="text-[#1565C0] text-[16px]">{t("card")}</p>
         </button>
       </div>
       <div className="grid gap-[20px]">
@@ -206,7 +206,7 @@ export const CardsList = () => {
               </div>
               <div className="text-[#F4F4F4]">
                 <p className="first-letter:uppercase text-[16px] text-gray-600">
-                  {card.card_type} заканчивается на {card.last_four_digits}
+                  {card.card_type} {t("ends")} {card.last_four_digits}
                 </p>
               </div>
             </div>
@@ -218,7 +218,6 @@ export const CardsList = () => {
           </div>
         ))}
 
-        {/* МОДАЛКА УДАЛЕНИЯ */}
         {deleteId !== null && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
             <div className="bg-white p-[24px] rounded-[16px] max-w-[400px] w-full shadow-2xl scale-in-center">
@@ -234,16 +233,16 @@ export const CardsList = () => {
                   </svg>
                 </button>
               </div>
-              <h3 className="text-[20px] font-bold mt-[16px] text-[#181D27]">Удалить карту</h3>
+              <h3 className="text-[20px] font-bold mt-[16px] text-[#181D27]">{t("delete")}</h3>
               <p className="text-[16px] leading-[20px] text-gray-500 mb-[32px]">
-                Карта будет удалена. Это действие нельзя отменить.
+                {t("deleted")}
               </p>
               <div className="flex gap-[12px] h-[42px]">
                 <button onClick={() => setDeleteId(null)} className="flex-1 border-2 border-gray-300 rounded-[8px] text-gray-700 font-bold hover:bg-gray-100 transition-colors">
-                  Отменить
+                  {t("canc")}
                 </button>
                 <button onClick={confirmDelete}className="flex-1 bg-red-600 font-bold text-white rounded-[8px] hover:bg-red-700 transition-colors shadow-lg shadow-red-100">
-                  Удалить
+                  {t("remove")}
                 </button>
               </div>
             </div>
@@ -254,11 +253,3 @@ export const CardsList = () => {
     </div>
   );
 };
-
-
-/* if (cardNumber.startsWith('4')) cardType = 'visa';
-  else if (cardNumber.startsWith('5')) cardType = 'mastercard';
-  else if (cardNumber.startsWith('2')) cardType = 'mir'; */
-
-
-  

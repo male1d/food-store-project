@@ -1,7 +1,10 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import $api from '@/api/axios';
-import { Package, ChevronRight, X, Clock, MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
+
 
 export interface IOrderItem {
   id: number;
@@ -25,14 +28,15 @@ export const OrdersList = () => {
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const delivery = 200;
 
+  const t = useTranslations('OrdersList');
+
   useEffect(() => {
     $api.get('/users/me/orders')
       .then(res => setOrders(res.data))
-      .catch(err => console.error("Ошибка загрузки", err))
+      .catch(err => console.error(t("downloadError"), err))
       .finally(() => setLoading(false));
   }, []);
 
-  // 1. КОМПОНЕНТ ДЛЯ СПИСКА (Только фото или текст "Скоро")
   const ProductListPreview = ({ productId }: { productId: number }) => {
     const [img, setImg] = useState<string | null>(null);
     const [error, setError] = useState(false);
@@ -53,14 +57,13 @@ export const OrdersList = () => {
           />
         ) : (
           <span className="text-[10px] text-[#757575] text-center leading-tight">
-            Фото скоро появится
+            {t("photoSoon")}
           </span>
         )}
       </div>
     );
   };
 
-  // 2. КОМПОНЕНТ ДЛЯ БОКОВОГО МЕНЮ (Фото + Название)
   const ProductSidebarInfo = ({ productId, item }: { productId: number, item : IOrderItem }) => {
     const [product, setProduct] = useState<{name: string, image_url: string} | null>(null);
     const [error, setError] = useState(false);
@@ -83,23 +86,21 @@ export const OrdersList = () => {
               onError={() => setError(true)}
             />
           ) : (
-            <span className="text-[8px] text-gray-400 font-bold uppercase text-center">Скоро</span>
+            <span className="text-[8px] text-gray-400 font-bold uppercase text-center">{t("soon")}</span>
           )}
         </div>
         <div className="flex-1">
-          <p className="text-[15px] ">{product?.name || 'Загрузка...'}</p>
-          <p className="text-[14px] text-[#757575]">{item.quantity} шт.</p>
+          <p className="text-[15px] ">{product?.name || `${t("loading")}`}</p>
+          <p className="text-[14px] text-[#757575]">{item.quantity} {t("pieces")}</p>
         </div>
       </div>
     );
   };
 
-  if (loading) return <div className="p-10 text-center font-medium text-gray-500">Загрузка истории...</div>;
+  if (loading) return <div className="p-10 text-center font-medium text-gray-500">{t("loadingStory")}</div>;
 
   return (
     <div className="relative flex min-h-[300px] overflow-hidden">
-      
-      {/* --- ЛЕВАЯ ЧАСТЬ: СПИСОК --- */}
       <div className={`flex-1 p-[10px] transition-all duration-500 ${selectedOrder ? 'mr-[520px]' : 'mr-[200px]'}`}>
         <div className="grid gap-[20px]">
           {orders.map((order) => (
@@ -114,7 +115,6 @@ export const OrdersList = () => {
             >
               <div>
                 <p className="text-[18px] text-[#212121] font-bold mb-[8px]">{new Date(order.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</p>
-                {/* Фото товаров в списке */}
                 <div className="flex flex-wrap gap-[8px]">
                   {order.order_items.slice(0, 5).map((item) => (
                     <ProductListPreview key={item.id} productId={item.product_id} />
@@ -129,21 +129,17 @@ export const OrdersList = () => {
 
               <div className="text-right">
                 <p className="text-[24px] font-bold">{parseFloat(order.total_amount).toLocaleString('ru-RU')} ₽</p>
-                <span className="text-[12px] font-bold lowercase text-[#212121] bg-[#F4F4F4] px-[15px] py-[7px] rounded-[12px]">в обработке{/* order.status */}</span>
+                <span className="text-[12px] font-bold lowercase text-[#212121] bg-[#F4F4F4] px-[15px] py-[7px] rounded-[12px]">{t("processing")}</span>
               </div>
-
-              
             </div>
           ))}
         </div>
       </div>
 
-      {/* --- ПРАВАЯ ЧАСТЬ: БОКОВОЕ МЕНЮ --- */}
       <aside className={`fixed bottom-[30px] right-0 h-[calc(100vh-100px)] bg-white rounded-[12px] border border-[2px] border-[#F4F4F4] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)  ${
         selectedOrder ? 'translate-x-0' : 'translate-x-full'
       }`} style={{ width: '520px' }}>
 
-        
         {selectedOrder && (
           <div className="flex flex-col gap-[25px] h-full px-[35px] py-[25px] overflow-x-hidden overflow-y-auto ">
 
@@ -152,12 +148,12 @@ export const OrdersList = () => {
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12.5 15.833L7.5 9.99967L12.5 4.16634" stroke="#757575" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <p>Заказ №{selectedOrder.id}</p>
+                <p>{t("order")} №{selectedOrder.id}</p>
               </button>
               <p>{new Date(selectedOrder.created_at).toLocaleDateString()}</p>
             </div>
 
-            <h3 className="text-[24px] font-bold text-center">Обрабатываем заказ</h3>
+            <h3 className="text-[24px] font-bold text-center">{t("processingOrd")}</h3>
             <div className="h-[26px]">
               <svg width="448" height="26" viewBox="0 0 448 26" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clip-path="url(#clip0_785_12586)">
@@ -177,15 +173,14 @@ export const OrdersList = () => {
                 </defs>
               </svg>
             </div>
-            <p className="text-[16px] text-[#1565C0]">Вы можете отменить заказ в течение 10 минут, позвонив по номеру +7 (912) 664-77-77</p>
+            <p className="text-[16px] text-[#1565C0]">{t("cancel")}</p>
             <div>
-              <p className="text-[#757575] text-[16px]">Адрес доставки</p>
+              <p className="text-[#757575] text-[16px]">{t("address")}</p>
               <p className="text-[16px]">{selectedOrder.delivery_address}</p>
             </div>
-
-              
+  
             <div className="">
-              <p className="text-[#757575] text-[16px]">Состав заказа</p>
+              <p className="text-[#757575] text-[16px]">{t("orderStruct")}</p>
               <div className="grid gap-[20px]">
               {selectedOrder.order_items.map((item) => (
                 <div key={item.id} className="px-[10px]  flex justify-between items-center group bg-gray-50/50 rounded-[12px] border border-transparent hover:border-blue-100 transition-all">
@@ -199,21 +194,19 @@ export const OrdersList = () => {
               </div>
             </div>
 
-
-            
             <div className="grid gap-[15px] ">
               <div className="h-[2px] bg-[#1565C0]/50"></div>
               <div className="flex justify-between">
-                <p className="text-[#212121] text-[15px]">Товары</p>
+                <p className="text-[#212121] text-[15px]">{t("products")}</p>
                 <p className="text-[16px] font-bold">{parseFloat(selectedOrder.total_amount).toLocaleString('ru-RU')} ₽</p>
               </div>
               <div className="flex justify-between">
-                <p className="text-[#212121] text-[15px]">Доставка</p>
+                <p className="text-[#212121] text-[15px]">{t("delivery")}</p>
                 <p className="text-[16px] font-bold">{delivery.toLocaleString('ru-RU')} ₽</p>
               </div>
               <div className="h-[2px] bg-[#1565C0]/50"></div>
               <div className="flex justify-between text-[24px] font-bold">
-                <p>Доставка</p>
+                <p>{t("res")}</p>
                 <p>{(parseFloat(selectedOrder.total_amount) + delivery).toLocaleString('ru-RU')} ₽</p>
               </div>
             </div>
